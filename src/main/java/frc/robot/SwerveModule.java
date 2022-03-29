@@ -1,6 +1,3 @@
 package frc.robot;
 
-public class SwerveModule {
-    
-    
-}
+public class SwerveModule {}
