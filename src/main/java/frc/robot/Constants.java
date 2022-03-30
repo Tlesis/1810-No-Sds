@@ -12,7 +12,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
      * <p>It is advised to statically import this class (or one of its inner classes) wherever the
      * constants are needed, to reduce verbosity.
      * For example:
-     * <pre> {@code import static frc.robot.Constants.*;} </pre>
+     * <pre> {@code import static frc.robot..Constants.*;} </pre>
      */
     public final class Constants {
         // https://drive.google.com/file/d/1g1jBZHPf6Fq6V2tG7PFIGtjpEEV2BIGf/view?usp=sharing
@@ -103,6 +103,11 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
         // Real: (Not done) rad/s^2 (after whole robot is assembled)
         public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = MAX_VELOCITY_METERS_PER_SECOND /
         Math.hypot(DriveConstants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DriveConstants.DRIVETRAIN_WHEELBASE_METERS / 2.0); // hypot is about 0.08116 meters
+
+        public static final double TELEOP_MAX_SPEED_PER_SEC = DriveConstants.MAX_VELOCITY_METERS_PER_SECOND / 1.5;
+        public static final double TELEOP_MAX_RADIANS_PER_SEC = DriveConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND / 1.5;
+        public static final double TELEOP_MAX_ACCELERATION_PER_SECOND = 3.0; // FIXME
+        public static final double TELEOP_MAX_ANGULAR_ACCELERATION_PER_SECOND = 3.0; // FIXME
     }
 
     public static final class ModuleConstants {
@@ -130,6 +135,14 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
                 new TrapezoidProfile.Constraints(
                         MAX_AUTO_RADIANS_PER_SEC,
                         MAX_AUTO_ACCELERATION_RADIANS);
+    }
+
+    public static final class OIConstants {
+        public static final int MOVEMENT_JOYSTICK_PORT = 0;
+        public static final int ROTATION_JOYSTICK_PORT = 1;
+        public static final int MANIPULATOR_CONTROLLER_PORT = 3;
+
+        public static final double DEADBAND = 0.4;
     }
 
     public static final class PigeonConstants {

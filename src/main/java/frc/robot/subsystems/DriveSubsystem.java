@@ -1,9 +1,5 @@
 package frc.robot.subsystems;
 
-import frc.robot.SwerveModule;
-
-import static frc.robot.Constants.*;
-
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -13,16 +9,23 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import static frc.robot.Constants.*;
+import frc.robot.SwerveModule;
+import io.github.oblarg.oblog.annotations.Log;
 
-public class DriveSubsystem {
+public class DriveSubsystem extends SubsystemBase {
 // Mom loves you
     private final SwerveModule frontLeft = new SwerveModule(
         DriveConstants.FRONT_LEFT_MODULE_DRIVE_MOTOR, 
@@ -67,12 +70,18 @@ public class DriveSubsystem {
     private final PigeonIMU gyro = new PigeonIMU(PigeonConstants.ID);
     private final SwerveDriveOdometry m_odometer = new SwerveDriveOdometry(DriveConstants.DRIVE_KINEMATICS, new Rotation2d(0));
 
-    public void zeroGyro() {
+    public void zeroGyroscope() {
         gyro.setFusedHeading(0);
     }
 
+    @Log(name = "Gyroscope angle")
     public double getGyro() {
         return gyro.getFusedHeading();
+    }
+
+    @Log(name = "Gyro 0")
+    public boolean ifGyroZero() {
+        return (getGyro() < 1 || getGyro() > -1);
     }
 
     public Rotation2d getRotation2d() {
@@ -85,7 +94,29 @@ public class DriveSubsystem {
 
     public void resetOdometry(Pose2d pose) {
         m_odometer.resetPosition(pose, getRotation2d());
-    
+    }
+
+    @Override
+    public void periodic() {
+        m_odometer.update(getRotation2d(), frontLeft.getState(), frontRight.getState(),
+                          backLeft.getState(), backRight.getState());
+        SmartDashboard.putString("Robot Location", getPose().getTranslation().toString());
+    }
+
+    public void stopModules() {
+        frontLeft.stop();
+        frontRight.stop();
+        backLeft.stop();
+        backRight.stop();
+    }
+
+    public void setModuleStates(SwerveModuleState desiredStates[]) {
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, DriveConstants.MAX_VELOCITY_METERS_PER_SECOND);
+        frontLeft.setDesiredState(desiredStates[0]);
+        frontRight.setDesiredState(desiredStates[1]);
+        backLeft.setDesiredState(desiredStates[2]);
+        backRight.setDesiredState(desiredStates[3]);
+    }
 
     /************************ PAth STuff ************************/
     
