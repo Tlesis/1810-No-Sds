@@ -3,9 +3,12 @@ package frc.robot;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.SwerveDrive;
+import frc.robot.commands.autonomous.paths.OffLineReversed;
 import frc.robot.log.Logger;
 import frc.robot.subsystems.DriveSubsystem;
 
@@ -25,7 +28,7 @@ public class RobotContainer {
      */
     private static final Logger LOG = new Logger();
 
-    // private SendableChooser<Command> pathChooser = new SendableChooser<>();
+    private SendableChooser<Command> pathChooser = new SendableChooser<>();
 
     private final DriveSubsystem m_driveSubsystem = LOG.catchAll(() -> new DriveSubsystem());
 
@@ -72,6 +75,10 @@ public class RobotContainer {
     // private final JoystickButton rotationJoystick_Button10 = LOG.catchAll(() -> new JoystickButton(rotationJoystick, 10));
     // private final JoystickButton rotationJoystick_Button11 = LOG.catchAll(() -> new JoystickButton(rotationJoystick, 11));
 
+
+    /* Auto Path(s) */
+    private final Command m_offLineReversed = LOG.catchAll(() -> new OffLineReversed(m_driveSubsystem));
+
     public RobotContainer() {
         m_driveSubsystem.setDefaultCommand(new SwerveDrive(
             m_driveSubsystem, 
@@ -82,6 +89,10 @@ public class RobotContainer {
 
         // Configure the button bindings
         configureButtonBindings();
+
+        pathChooser.setDefaultOption("Null", null);
+        pathChooser.addOption("Shoot & Offline Reversed", m_offLineReversed);
+        Shuffleboard.getTab("Autonomous").add(pathChooser);
     }
 
     /**
