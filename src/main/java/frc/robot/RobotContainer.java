@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.SwerveDrive;
-import frc.robot.commands.autonomous.paths.OffLineReversed;
+import frc.robot.commands.autonomous.paths.OffLine2;
 import frc.robot.log.Logger;
 import frc.robot.subsystems.DriveSubsystem;
 
@@ -77,7 +77,7 @@ public class RobotContainer {
 
 
     /* Auto Path(s) */
-    private final Command m_offLineReversed = LOG.catchAll(() -> new OffLineReversed(m_driveSubsystem));
+    private final Command m_offLineTwo = LOG.catchAll(() -> new OffLine2(m_driveSubsystem));
 
     public RobotContainer() {
         m_driveSubsystem.setDefaultCommand(new SwerveDrive(
@@ -91,7 +91,7 @@ public class RobotContainer {
         configureButtonBindings();
 
         pathChooser.setDefaultOption("Null", null);
-        pathChooser.addOption("Shoot & Offline Reversed", m_offLineReversed);
+        pathChooser.addOption("Shoot & Offline Reversed", m_offLineTwo);
         Shuffleboard.getTab("Autonomous").add(pathChooser);
     }
 

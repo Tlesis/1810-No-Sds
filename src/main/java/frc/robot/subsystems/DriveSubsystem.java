@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 import com.ctre.phoenix.sensors.PigeonIMU;
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -120,29 +122,9 @@ public class DriveSubsystem extends SubsystemBase {
 
     /************************ PAth STuff ************************/
     
-    /**
-     * Gets the path of a PathPlanner json file
-     * @param trajectoryName the name of the PathPlanner path you want to call
-     * @throws IOException
-     */
-    protected static Trajectory loadTrajectory(String trajectoryName) throws IOException {
-        return TrajectoryUtil.fromPathweaverJson(
-            Filesystem.getDeployDirectory().toPath().resolve(Paths.get("paths", trajectoryName + ".wpilib.json")));
-    }
-          
-    /** 
-     * Loads the PathPlanner File 
-         * Loads the PathPlanner File 
-     * Loads the PathPlanner File 
-     * @param filename the name of the .json file
-     */
-    public Trajectory loadTrajectoryFromFile(String filename) {
-        try {
-            return loadTrajectory(filename);
-        } catch (IOException e) {
-            DriverStation.reportError("Failed to load auto trajectory: " + filename, false);
-            return new Trajectory();
-        }
+    public Pose2d getInitPose(PathPlannerTrajectory trajectory) {
+        return new Pose2d(trajectory.getInitialState().poseMeters.getTranslation(),
+            trajectory.getInitialState().holonomicRotation);
     }
           
     /**
@@ -150,7 +132,7 @@ public class DriveSubsystem extends SubsystemBase {
      * @param trajectory trajectory to follow
      * @return command that will run the trajectory
      */
-    public Command createCommandForTrajectory(Trajectory trajectory, Boolean initPose) {
+    public Command createCommandForTrajectory(PathPlannerTrajectory trajectory, Boolean initPose) {
     
         PIDController xController = new PIDController(AutoConstants.kp_X_CONTROLLER, 0, 0);
         PIDController yController = new PIDController(AutoConstants.kp_Y_CONTROLLER, 0, 0);
@@ -158,7 +140,7 @@ public class DriveSubsystem extends SubsystemBase {
             AutoConstants.kp_THETA_CONTROLLER, 0.0, 0.1, AutoConstants.THETA_CONTROLLER_CONSTRAINTS);
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
     
-        SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        PPSwerveControllerCommand swerveControllerCommand = new PPSwerveControllerCommand(
             trajectory,
             this::getPose,
             DriveConstants.DRIVE_KINEMATICS,
@@ -169,11 +151,11 @@ public class DriveSubsystem extends SubsystemBase {
             this);
     
         if (initPose) {
-            var reset =  new InstantCommand(() -> this.resetOdometry(trajectory.getInitialPose()));
+            var reset =  new InstantCommand(() -> this.resetOdometry(getInitPose(trajectory)));
             return reset.andThen(swerveControllerCommand.andThen(() -> stopModules()));
         } else {
             return swerveControllerCommand.andThen(() -> stopModules());
-            
         }
     }
+
 }
