@@ -120,6 +120,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
         // PID Constants
         public static final double P = 0.2;
         public static final double D = 0.1;
+
+        public static final double MAX_VOLTAGE = 12.0;
     }
 
     public static final class AutoConstants {
@@ -127,9 +129,9 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
         public static final double MAX_AUTO_RADIANS_PER_SEC = DriveConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND / 1.5;
         public static final double MAX_AUTO_ACCELERATION_RADIANS = 3;
 
-        public static final double kp_X_CONTROLLER = 0.1; // (https://youtu.be/jIKBWO7ps0w)
-        public static final double kp_Y_CONTROLLER = 0.1;
-        public static final double kp_THETA_CONTROLLER = 0.2;
+        public static final double kp_X_CONTROLLER = 8; // (https://youtu.be/jIKBWO7ps0w)
+        public static final double kp_Y_CONTROLLER = 8;
+        public static final double kp_THETA_CONTROLLER = 4;
 
         public static final TrapezoidProfile.Constraints THETA_CONTROLLER_CONSTRAINTS = 
                 new TrapezoidProfile.Constraints(

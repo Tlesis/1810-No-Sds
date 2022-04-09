@@ -41,11 +41,6 @@ public class SwerveDrive extends CommandBase {
         double ySpeed = this.ySpeed.get();
         double thetaSpeed = this.thetaSpeed.get();
 
-        // 2. Apply deadband
-        xSpeed = Math.abs(xSpeed) > OIConstants.DEADBAND ? xSpeed : 0.0;
-        ySpeed = Math.abs(ySpeed) > OIConstants.DEADBAND ? ySpeed : 0.0;
-        thetaSpeed = Math.abs(thetaSpeed) > OIConstants.DEADBAND ? thetaSpeed : 0.0;
-
         // 3. Make the driving smoother
         xSpeed = xLimiter.calculate(xSpeed) * DriveConstants.TELEOP_MAX_SPEED_PER_SEC;
         ySpeed = yLimiter.calculate(ySpeed) * DriveConstants.TELEOP_MAX_SPEED_PER_SEC;
@@ -54,17 +49,14 @@ public class SwerveDrive extends CommandBase {
 
         // 4. Construct desired chassis speeds
         ChassisSpeeds chassisSpeeds;
-        if (fieldOriented) {
-            // Relative to field
-            chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeed, ySpeed, thetaSpeed, driveSubsystem.getRotation2d());
-        } else {
-            // Relative to robot
-            chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, thetaSpeed);
-        }
+        // Relative to field
+        chassisSpeeds = (fieldOriented) ? ChassisSpeeds.fromFieldRelativeSpeeds(
+                xSpeed, ySpeed, thetaSpeed, driveSubsystem.getRotation2d()) :
+        // Relative to robot
+        new ChassisSpeeds(xSpeed, ySpeed, thetaSpeed);
 
         // 5. Convert chassis speeds to individual module states
-        SwerveModuleState[] moduleStates = DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(chassisSpeeds);
+        SwerveModuleState moduleStates[] = DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
         // 6. Output each module states to wheels
         driveSubsystem.setModuleStates(moduleStates);
