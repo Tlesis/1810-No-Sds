@@ -87,6 +87,8 @@ public class SwerveModule {
             return;
         }
         
+        // driveMotor.setNeutralMode(NeutralMode.Coast);
+        // steerMotor.setNeutralMode(NeutralMode.Coast);
         state = SwerveModuleState.optimize(state, getState().angle);
         driveMotor.set(ControlMode.PercentOutput, state.speedMetersPerSecond / DriveConstants.MAX_VELOCITY_METERS_PER_SECOND * ModuleConstants.MAX_VOLTAGE);
         steerMotor.set(ControlMode.PercentOutput, steerPIDController.calculate(getSteerPosition(), state.angle.getRadians()));
@@ -94,6 +96,8 @@ public class SwerveModule {
     }
 
     public void stop() {
+        // driveMotor.setNeutralMode(NeutralMode.Brake);
+        // steerMotor.setNeutralMode(NeutralMode.Brake);
         driveMotor.set(ControlMode.PercentOutput, 0);
         steerMotor.set(ControlMode.PercentOutput, 0);
     }
