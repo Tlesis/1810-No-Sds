@@ -157,8 +157,6 @@ gradle-app.setting
 .project
 .settings/
 bin/
-generatedJSON
-generatedCSV
 
 # Simulation GUI and other tools window save file
 *-window.json

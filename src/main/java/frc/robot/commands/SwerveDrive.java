@@ -1,74 +1,59 @@
 package frc.robot.commands;
 
-import java.util.function.Supplier;
-
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import static frc.robot.Constants.*;
+import frc.robot.math.SigmoidGenerator;
 import frc.robot.subsystems.DriveSubsystem;
 
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+import static java.lang.StrictMath.PI;
+
 public class SwerveDrive extends CommandBase {
-   
+
     private final DriveSubsystem driveSubsystem;
-    private final Supplier<Double> xSpeed, ySpeed, thetaSpeed;
-    private final boolean fieldOriented;
-    private final SlewRateLimiter xLimiter, yLimiter, thetaLimiter;
+    private final Joystick rotConroller;
+    private final Joystick moveController;
+    private static final SigmoidGenerator responseCurve = new SigmoidGenerator(1.0);
+    private static final SlewRateLimiter xLimiter = new SlewRateLimiter(4.5);
+    private static final SlewRateLimiter yLimiter = new SlewRateLimiter(4.5);
+    private static final SlewRateLimiter thetaLimiter = new SlewRateLimiter(4.5);
+    private double angle;
 
-    public SwerveDrive(DriveSubsystem driveSubsystem,
-            Supplier<Double> xSpeed, Supplier<Double> ySpeed, Supplier<Double> thetaSpeed,
-            boolean fieldOriented) {
+    public SwerveDrive(DriveSubsystem driveSubsystem, Joystick moveController, Joystick rotConroller) {
         this.driveSubsystem = driveSubsystem;
-        this.xSpeed = xSpeed;
-        this.ySpeed = ySpeed;
-        this.thetaSpeed = thetaSpeed;
-        this.fieldOriented = fieldOriented;
-        this.xLimiter = new SlewRateLimiter(DriveConstants.TELEOP_MAX_ACCELERATION_PER_SECOND);
-        this.yLimiter = new SlewRateLimiter(DriveConstants.TELEOP_MAX_ACCELERATION_PER_SECOND);
-        this.thetaLimiter = new SlewRateLimiter(DriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION_PER_SECOND);
-        addRequirements(driveSubsystem);
+        this.moveController = moveController;
+        this.rotConroller = rotConroller;
+        this.angle = DriveSubsystem.gyro.getFusedHeading();
+        this.addRequirements(driveSubsystem);
     }
-
+    
     @Override
     public void initialize() {
-    }
-
-    @Override
-    public void execute() {
-        // 1. Get real-time joystick inputs
-        double xSpeed = this.xSpeed.get();
-        double ySpeed = this.ySpeed.get();
-        double thetaSpeed = this.thetaSpeed.get();
-
-        // 3. Make the driving smoother
-        xSpeed = xLimiter.calculate(xSpeed) * DriveConstants.TELEOP_MAX_SPEED_PER_SEC;
-        ySpeed = yLimiter.calculate(ySpeed) * DriveConstants.TELEOP_MAX_SPEED_PER_SEC;
-        thetaSpeed = thetaLimiter.calculate(thetaSpeed)
-                * DriveConstants.TELEOP_MAX_RADIANS_PER_SEC;
-
-        // 4. Construct desired chassis speeds
-        ChassisSpeeds chassisSpeeds;
-        // Relative to field
-        chassisSpeeds = (fieldOriented) ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                xSpeed, ySpeed, thetaSpeed, driveSubsystem.getRotation2d()) :
-        // Relative to robot
-        new ChassisSpeeds(xSpeed, ySpeed, thetaSpeed);
-
-        // 5. Convert chassis speeds to individual module states
-        SwerveModuleState moduleStates[] = DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(chassisSpeeds);
-
-        // 6. Output each module states to wheels
-        driveSubsystem.setModuleStates(moduleStates);
-    }
-
-    @Override
-    public void end(boolean interrupted) {
-        driveSubsystem.stopModules();
+        driveSubsystem.frontLeft.zero();
+        driveSubsystem.backLeft.zero();
+        driveSubsystem.frontRight.zero();
+        driveSubsystem.backRight.zero();
     }
 
     @Override
     public boolean isFinished() {
         return false;
+    }
+
+    @Override
+    public void execute() {
+
+        angle = -(DriveSubsystem.gyro.getFusedHeading() % 360);
+
+        double xInput = responseCurve.calculate(moveController.getX());
+        double yInput = responseCurve.calculate(moveController.getY());
+
+        try {
+            driveSubsystem.drive(xLimiter.calculate(yInput * cos(angle / 360 * (2 * PI))) + xInput * sin(angle / 360 * (2 * PI)),
+            yLimiter.calculate(yInput * sin(angle / 360 * (2 * PI))) - xInput * cos(angle /360 * (2 * PI)),
+            thetaLimiter.calculate(rotConroller.getX()));
+        } catch (Exception e) {}
     }
 }

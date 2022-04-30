@@ -3,14 +3,11 @@ package frc.robot;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.SwerveDrive;
-import frc.robot.commands.autonomous.paths.OffLine;
 import frc.robot.log.Logger;
 import frc.robot.subsystems.DriveSubsystem;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import static frc.robot.Constants.*;
 
@@ -27,8 +24,6 @@ public class RobotContainer {
      * @since 2018
      */
     private static final Logger LOG = new Logger();
-
-    private SendableChooser<Command> pathChooser = new SendableChooser<>();
 
     private final DriveSubsystem m_driveSubsystem = LOG.catchAll(() -> new DriveSubsystem());
 
@@ -74,25 +69,17 @@ public class RobotContainer {
     private final JoystickButton rotationJoystick_Button9 = LOG.catchAll(() -> new JoystickButton(rotationJoystick, 9));
     // private final JoystickButton rotationJoystick_Button10 = LOG.catchAll(() -> new JoystickButton(rotationJoystick, 10));
     // private final JoystickButton rotationJoystick_Button11 = LOG.catchAll(() -> new JoystickButton(rotationJoystick, 11));
+    
 
-
-    /* Auto Path(s) */
-    private final Command m_offLine = LOG.catchAll(() -> new OffLine(m_driveSubsystem));
-
+    /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-        m_driveSubsystem.setDefaultCommand(new SwerveDrive(
-            m_driveSubsystem, 
-            () -> -modifyAxis(movementJoystick.getY()) * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND,
-            () -> -modifyAxis(movementJoystick.getX()) * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND,
-            () -> -modifyAxis((rotationJoystick.getX() / 1.25)) * DriveConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
-            true));
+        m_driveSubsystem.setDefaultCommand(
+            new SwerveDrive(
+                m_driveSubsystem,
+                movementJoystick,
+                rotationJoystick));
 
-        // Configure the button bindings
         configureButtonBindings();
-
-        pathChooser.setDefaultOption("Null", null);
-        pathChooser.addOption("Shoot & Offline Reversed", m_offLine);
-        Shuffleboard.getTab("Autonomous").add(pathChooser);
     }
 
     /**
@@ -112,29 +99,6 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return pathChooser.getSelected();
-    }
-
-    /** Sets the deadzone for the controller/joystick */
-    private static double deadband(double value, double deadband) {
-        if (Math.abs(value) > deadband) {
-            if (value > 0) {
-                return (value - deadband) / (1.0 - deadband);
-            } else {
-                return (value + deadband) / (1.0 - deadband);
-            }
-        } else {
-            return 0.0;
-        }
-    }
-
-    private static double modifyAxis(double value) {
-
-        value = deadband(value, OIConstants.DEADBAND);
-
-        // Square the axis
-        value = Math.copySign(value * value, value);
-
-        return value;
+        return null;
     }
 }

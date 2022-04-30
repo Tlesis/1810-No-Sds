@@ -1,104 +1,87 @@
 package frc.robot;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.*;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.CANCoder;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Constants.*;
+import static frc.robot.Constants.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
 
 public class SwerveModule {
+    
+    private WPI_TalonFX axisMotor;
+    private WPI_TalonFX driveMotor;
+    private double canCoderAngle;
+    private CANCoder canCoder;
 
-    private final TalonFX driveMotor;
-    private final TalonFX steerMotor;
+    // Note: Phoenix Lib init knocks motors out of alignment
+    // Wait until you see that on the console before running, else realign
 
-    private final CANCoder canCoder;
+    public SwerveModule(int turningMotor, int driveMotor, int canCoder) {
+        this.canCoder = new CANCoder(canCoder);
+        this.canCoderAngle = 0.0;
 
-    private final PIDController steerPIDController;
+        this.axisMotor = new WPI_TalonFX(turningMotor);
+        this.axisMotor.setInverted(TalonFXInvertType.Clockwise); // FIXME
+        this.axisMotor.configNeutralDeadband(0.0001);
+        this.axisMotor.configSelectedFeedbackSensor(FeedbackDevice.valueOf(1));
 
-    private final double moduleOffset;
+        this.axisMotor.setSelectedSensorPosition(-(this.canCoderAngle/360) * 2048 * ModuleConstants.STEER_RATIO);
+        this.axisMotor.config_kF(0, ModuleConstants.STEER_kF);
+        this.axisMotor.config_kP(0, ModuleConstants.STEER_kP);
+        this.axisMotor.config_kI(0, ModuleConstants.STEER_kI);
+        this.axisMotor.config_kD(0, ModuleConstants.STEER_kD);
+        this.axisMotor.setNeutralMode(NeutralMode.Coast);
 
-    private final boolean canCoderReversed;
-
-    private final String moduleName;
-
-    public SwerveModule(int driveMotorID, int steerMotorID, int canCoderID, 
-                        double moduleOffset, boolean driveMotorReversed,
-                        boolean steerMotorReversed, boolean canCoderReversed, String moduleName) {
-
-        this.driveMotor = new TalonFX(driveMotorID);
-        this.steerMotor = new TalonFX(steerMotorID);
-
-        driveMotor.setInverted(driveMotorReversed);
-        steerMotor.setInverted(steerMotorReversed);
-
-        this.canCoder = new CANCoder(canCoderID);
-
-        this.moduleOffset = moduleOffset;
-
-        this.canCoderReversed = canCoderReversed;
-
-        this.steerPIDController = new PIDController(ModuleConstants.P, 0.0, ModuleConstants.D);
-        steerPIDController.enableContinuousInput(-Math.PI, Math.PI);
-
-        this.moduleName = moduleName;
-
-        resetEncoders();
+        this.driveMotor = new WPI_TalonFX(driveMotor);
+        this.driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
+        this.driveMotor.setInverted(TalonFXInvertType.CounterClockwise); // FIXME
+        this.driveMotor.configNeutralDeadband(0.01);
+        this.driveMotor.setSelectedSensorPosition(0);
+        this.driveMotor.config_kF(0, ModuleConstants.DRIVE_kF);
+        this.driveMotor.config_kP(0, ModuleConstants.DRIVE_kP);
+        this.driveMotor.config_kI(0, ModuleConstants.DRIVE_kI);
+        this.driveMotor.config_kD(0, ModuleConstants.DRIVE_kD);
+        this.driveMotor.setNeutralMode(NeutralMode.Coast);
     }
 
-    public double getDrivePosition() {
-        return driveMotor.getSelectedSensorPosition();
-    }
+    public void set(double speed, double angle) {
+        double steerEncoderAngle = axisMotor.getSelectedSensorPosition() / ModuleConstants.STEER_RATIO / 2048 * (2 * PI);
+        double driveConstants = 204.8 / (2 * PI) * ModuleConstants.DRIVE_RATIO / ModuleConstants.WHEEL_RADIUS_METERS;
+        double angleConstants = 2048 / (2 * PI) * ModuleConstants.STEER_RATIO;
 
-    public double getSteerPosition() {
-        return steerMotor.getSelectedSensorPosition();
-    }
+        speed *= driveConstants;
 
-    public double getDriveVelocity() {
-        return driveMotor.getSelectedSensorVelocity();
-    }
+        double encoderTrue = steerEncoderAngle % (2 * PI);
+        double dTheta = angle - encoderTrue;
 
-    public double getSteerVelocity() {
-        return steerMotor.getSelectedSensorVelocity();
-    }
-
-    public double getAbsoluteEncoderRad() {
-        double angle = canCoder.getPosition();
-        angle *= 2.0 * Math.PI;
-        angle -= moduleOffset;
-        return angle * (canCoderReversed ? -1.0 : 1.0);
-    }
-
-    public void resetEncoders() {
-        driveMotor.setSelectedSensorPosition(0);
-        steerMotor.setSelectedSensorPosition(getAbsoluteEncoderRad());
-    }
-
-    public SwerveModuleState getState() {
-        return new SwerveModuleState(getDriveVelocity(), new Rotation2d(getSteerPosition()));
-    }
-
-    public void setDesiredState(SwerveModuleState state) {
-        if (Math.abs(state.speedMetersPerSecond) < 0.001) {
-            stop();
-            return;
+        if (abs(-2 * PI + dTheta) < abs(dTheta)) {
+            if (abs(-2 * PI + dTheta) < abs(2 * PI + dTheta)) {
+                dTheta = -2 * PI + dTheta;
+            } else {
+                dTheta = 2 * PI + dTheta;
+            }
+        } else if (abs(dTheta) > abs(2*PI + dTheta)) {
+            dTheta = 2 * PI + dTheta;
         }
-        
-        // driveMotor.setNeutralMode(NeutralMode.Coast);
-        // steerMotor.setNeutralMode(NeutralMode.Coast);
-        state = SwerveModuleState.optimize(state, getState().angle);
-        driveMotor.set(ControlMode.PercentOutput, state.speedMetersPerSecond / DriveConstants.MAX_VELOCITY_METERS_PER_SECOND * ModuleConstants.MAX_VOLTAGE);
-        steerMotor.set(ControlMode.PercentOutput, steerPIDController.calculate(getSteerPosition(), state.angle.getRadians()));
-        SmartDashboard.putString("Swerve[" + this.moduleName + "] state", state.toString());
+
+        double angleFinal = steerEncoderAngle + dTheta;
+        angleFinal *= angleConstants;
+
+        this.driveMotor.set(ControlMode.Velocity, speed);
+        if (speed < 120) {
+            this.axisMotor.set(ControlMode.Velocity, 0);
+            this.driveMotor.set(ControlMode.Velocity, 0);
+        } else {
+            this.axisMotor.set(ControlMode.Position, angleFinal);
+            this.driveMotor.set(ControlMode.Velocity, speed);
+        }
     }
 
-    public void stop() {
-        // driveMotor.setNeutralMode(NeutralMode.Brake);
-        // steerMotor.setNeutralMode(NeutralMode.Brake);
-        driveMotor.set(ControlMode.PercentOutput, 0);
-        steerMotor.set(ControlMode.PercentOutput, 0);
+    public void zero() {
+        canCoderAngle = this.canCoder.getAbsolutePosition();
+        this.axisMotor.setSelectedSensorPosition(-(canCoderAngle / 360) * 2048 * ModuleConstants.STEER_RATIO);
+        this.axisMotor.set(ControlMode.Velocity, 0);
     }
 }
