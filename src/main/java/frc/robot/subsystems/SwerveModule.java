@@ -4,7 +4,8 @@
 
 package frc.robot.subsystems;
 
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.sensors.CANCoder;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -16,8 +17,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import static frc.robot.Constants.ModuleConstants;
 
 public class SwerveModule {
-    private final WPI_TalonFX driveMotor;
-    private final WPI_TalonFX steerMotor;
+    private final TalonFX driveMotor;
+    private final TalonFX steerMotor;
     private final CANCoder canCoder;
 
     private final boolean canCoderReversed;
@@ -51,8 +52,8 @@ public class SwerveModule {
         boolean driveMotorReversed,
         boolean steerMotorReversed,
         boolean canCoderReversed) {
-        driveMotor = new WPI_TalonFX(driveMotorChannel);
-        steerMotor = new WPI_TalonFX(steerMotorChannel);
+        driveMotor = new TalonFX(driveMotorChannel);
+        steerMotor = new TalonFX(steerMotorChannel);
 
         /** Set the distance per pulse for the drive encoder. We can simply use the
         distance traveled for one rotation of the wheel divided by the encoder resolution. */
@@ -108,12 +109,12 @@ public class SwerveModule {
             turningPIDController.calculate(getCanCoderPosition(), state.angle.getRadians());
 
         // Calculate the turning motor output from the turning PID controller.
-        driveMotor.set(driveOutput);
-        steerMotor.set(turnOutput);
+        driveMotor.set(TalonFXControlMode.PercentOutput, driveOutput);
+        steerMotor.set(TalonFXControlMode.Position, turnOutput);
     }
 
     public void stop() {
-        driveMotor.set(0);
-        steerMotor.set(0);
+        driveMotor.set(TalonFXControlMode.PercentOutput, 0);
+        steerMotor.set(TalonFXControlMode.PercentOutput, 0);
     }
 }

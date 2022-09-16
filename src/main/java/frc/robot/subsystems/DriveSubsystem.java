@@ -8,7 +8,6 @@ import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -17,7 +16,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class DriveSubsystem extends SubsystemBase {
     // Robot swerve modules
-    private final SwerveModule frontLeft =
+    public final SwerveModule frontLeft =
         new SwerveModule(
             DriveConstants.FRONT_LEFT_MODULE_DRIVE_MOTOR,
             DriveConstants.FRONT_LEFT_MODULE_STEER_MOTOR,
@@ -26,7 +25,7 @@ public class DriveSubsystem extends SubsystemBase {
             DriveConstants.FRONT_LEFT_MODULE_STEER_REVERSED,
             DriveConstants.FRONT_LEFT_MODULE_CANCODER_REVERSED);
 
-    private final SwerveModule backLeft =
+    public final SwerveModule backLeft =
         new SwerveModule(
             DriveConstants.BACK_LEFT_MODULE_DRIVE_MOTOR,
             DriveConstants.BACK_LEFT_MODULE_STEER_MOTOR,
@@ -35,7 +34,7 @@ public class DriveSubsystem extends SubsystemBase {
             DriveConstants.BACK_LEFT_MODULE_STEER_REVERSED,
             DriveConstants.BACK_LEFT_MODULE_CANCODER_REVERSED);
 
-    private final SwerveModule frontRight =
+    public final SwerveModule frontRight =
         new SwerveModule(
             DriveConstants.FRONT_LEFT_MODULE_DRIVE_MOTOR,
             DriveConstants.FRONT_RIGHT_MODULE_STEER_MOTOR,
@@ -44,7 +43,7 @@ public class DriveSubsystem extends SubsystemBase {
             DriveConstants.FRONT_RIGHT_MODULE_STEER_REVERSED,
             DriveConstants.FRONT_RIGHT_MODULE_CANCODER_REVERSED);
 
-    private final SwerveModule backRight =
+    public final SwerveModule backRight =
         new SwerveModule(
             DriveConstants.BACK_RIGHT_MODULE_DRIVE_MOTOR,
             DriveConstants.BACK_RIGHT_MODULE_STEER_MOTOR,
@@ -93,29 +92,6 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     /**
-     * Method to drive the robot using joystick info.
-     *
-     * @param xSpeed Speed of the robot in the x direction (forward).
-     * @param ySpeed Speed of the robot in the y direction (sideways).
-     * @param rot Angular rate of the robot.
-     * @param fieldRelative Whether the provided x and y speeds are relative to the field.
-     */
-    @SuppressWarnings("ParameterName")
-    public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-        var swerveModuleStates =
-            DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
-                fieldRelative
-                    ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, new Rotation2d(gyro.getFusedHeading()))
-                    : new ChassisSpeeds(xSpeed, ySpeed, rot));
-        SwerveDriveKinematics.desaturateWheelSpeeds(
-            swerveModuleStates, DriveConstants.MAX_VELOCITY_METERS_PER_SECOND);
-        frontLeft.setDesiredState(swerveModuleStates[0]);
-        frontRight.setDesiredState(swerveModuleStates[1]);
-        backLeft.setDesiredState(swerveModuleStates[2]);
-        backRight.setDesiredState(swerveModuleStates[3]);
-    }
-
-    /**
      * Sets the swerve ModuleStates.
      *
      * @param desiredStates The desired SwerveModule states.
@@ -139,8 +115,8 @@ public class DriveSubsystem extends SubsystemBase {
      *
      * @return the robot's heading in degrees, from -180 to 180
      */
-    public double getHeading() {
-        return new Rotation2d(gyro.getFusedHeading()).getDegrees();
+    public Rotation2d getHeading() {
+        return new Rotation2d(gyro.getFusedHeading());
     }
 
     public void stopModules() {

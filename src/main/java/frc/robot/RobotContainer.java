@@ -83,9 +83,9 @@ public class RobotContainer {
         // The left stick controls translation of the robot.
         // Turning is controlled by the X axis of the right stick.
         new SwerveDrive(
-                movementJoystick.getY(),
-                movementJoystick.getX(),
-                rotationJoystick.getX(),
+                modifyAxis(movementJoystick.getY()),
+                modifyAxis(movementJoystick.getX()),
+                modifyAxis(rotationJoystick.getX()),
                 true,
                 m_driveSubsystem));
     }
@@ -108,5 +108,29 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         return null;
+    }
+
+    /** Sets the deadzone for the controller/joystick */
+    private static double deadband(double value, double deadband) {
+        if (Math.abs(value) > deadband) {
+            if (value > 0.0) {
+                return (value - deadband) / (1.0 - deadband);
+            } else {
+                return (value + deadband) / (1.0 - deadband);
+            }
+        } else {
+            return 0.0;
+        }
+    }
+
+    /** Applies deadband and Copies the sign */
+    private static double modifyAxis(double value) {
+        // Deadband
+        value = deadband(value, OIConstants.DEADBAND);
+
+        // Square the axis
+        value = Math.copySign(value * value, value);
+
+        return value;
     }
 }
