@@ -1,4 +1,4 @@
-package frc.robot.log;
+package org.usd232.robotics.rapidreact.log;
 
 import java.io.IOException;
 import java.io.PrintStream;

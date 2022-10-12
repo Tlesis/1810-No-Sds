@@ -1,6 +1,8 @@
-package frc.robot;
+package org.usd232.robotics.rapidreact;
 
 import edu.wpi.first.wpilibj.RobotBase;
+
+// https://drive.google.com/file/d/1SLhzzPlQXKFiCXgxzHFandjFaWhXx6js/view?usp=sharing
 
 /**
  * Do NOT add any static variables to this class, or any initialization at all. Unless you know what

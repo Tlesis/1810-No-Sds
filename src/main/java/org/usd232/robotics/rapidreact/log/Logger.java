@@ -1,4 +1,4 @@
-package frc.robot.log;
+package org.usd232.robotics.rapidreact.log;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;

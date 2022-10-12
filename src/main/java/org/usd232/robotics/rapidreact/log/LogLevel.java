@@ -1,4 +1,4 @@
-package frc.robot.log;
+package org.usd232.robotics.rapidreact.log;
 
 /**
  * An enum of the different log levels
