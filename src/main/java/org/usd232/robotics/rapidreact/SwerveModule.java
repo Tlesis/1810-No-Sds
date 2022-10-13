@@ -71,6 +71,12 @@ public class SwerveModule {
     }
 
     public void set(double driveVoltage, double steerAngle) {
+        /* if (Math.abs(driveVoltage / 12) < 0.001) {
+            driveMotor.setNeutralMode(NeutralMode.Coast);
+        } else {
+            driveMotor.setNeutralMode(NeutralMode.Brake);
+        } */
+
         steerAngle %= (2.0 * Math.PI);
         if (steerAngle < 0.0) {
             steerAngle += 2.0 * Math.PI;
