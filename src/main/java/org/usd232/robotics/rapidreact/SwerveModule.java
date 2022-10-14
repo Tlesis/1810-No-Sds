@@ -71,12 +71,13 @@ public class SwerveModule {
     }
 
     public void set(double driveVoltage, double steerAngle) {
-        /* if (Math.abs(driveVoltage / 12) < 0.001) {
+        /* if (Math.abs(getDriveVelocity()) < 0.1) {
             driveMotor.setNeutralMode(NeutralMode.Coast);
         } else {
             driveMotor.setNeutralMode(NeutralMode.Brake);
         } */
 
+        // Put the angle into the range [0, 2pi)
         steerAngle %= (2.0 * Math.PI);
         if (steerAngle < 0.0) {
             steerAngle += 2.0 * Math.PI;
@@ -111,6 +112,7 @@ public class SwerveModule {
 
     private double getSteerAngle() {
         double motorAngleRadians = steerMotor.getSelectedSensorPosition() * ModuleConstants.MOTOR_ENCODER_POSITION_COEFFICIENT;
+        // Put the angle into the range [0, 2pi)
         motorAngleRadians %= 2.0 * Math.PI;
         if (motorAngleRadians < 0.0) {
             motorAngleRadians += 2.0 * Math.PI;
@@ -124,8 +126,6 @@ public class SwerveModule {
     }
 
     private void setReferenceAngle(double referenceAngleRadians, double speed) {
-        if (speed / 12 == 0) return;
-
         double currentAngleRadians = steerMotor.getSelectedSensorPosition() * ModuleConstants.MOTOR_ENCODER_POSITION_COEFFICIENT;
 
         // Reset the NEO's encoder periodically when the module is not rotating.
@@ -141,6 +141,9 @@ public class SwerveModule {
         } else {
             resetIteration = 0;
         }
+
+        // Snapback fix?
+        if ((speed / 12) == 0) return;
 
         double currentAngleRadiansMod = currentAngleRadians % (2.0 * Math.PI);
         if (currentAngleRadiansMod < 0.0) {
@@ -159,20 +162,20 @@ public class SwerveModule {
         this.referenceAngleRadians = referenceAngleRadians;
     }
 
+    /** util */
     private static void checkCtreError(ErrorCode errorCode, String message) {
         if (RobotBase.isReal() && errorCode != ErrorCode.OK) {
             DriverStation.reportError(String.format("%s: %s", message, errorCode.toString()), false);
         }
     }
 
-    /** util */
-    public double[] getSelectedSensorPosition() {
-        return new double[] {driveMotor.getSelectedSensorPosition(),
-                             steerMotor.getSelectedSensorPosition()};
+    public double getDriveEncoder() {
+        return driveMotor.getSelectedSensorPosition();
     }
 
     public double getAbsoluteAngle() {
         double angle = Math.toRadians(absoluteEncoder.getAbsolutePosition());
+        // Put the angle into the range [0, 2pi)
         angle %= 2.0 * Math.PI;
         if (angle < 0.0) {
             angle += 2.0 * Math.PI;

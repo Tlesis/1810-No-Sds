@@ -4,7 +4,7 @@ import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import com.ctre.phoenix.sensors.PigeonIMU;
 
-import org.usd232.robotics.rapidreact.log.Logger;
+// import org.usd232.robotics.rapidreact.log.Logger;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -38,7 +38,7 @@ public class DriveSubsystem extends SubsystemBase {
      * @since 2018
      */
     //@SuppressWarnings("unused")
-    private static final Logger LOG = new Logger();
+    // private static final Logger LOG = new Logger();
 
     private final static PigeonIMU m_pigeon = new PigeonIMU(PigeonConstants.ID);
 
@@ -50,17 +50,6 @@ public class DriveSubsystem extends SubsystemBase {
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
     private final SwerveDriveOdometry m_odometer;
-
-    public enum Module {
-        kFL,
-        kFrontLeft,
-        kFR,
-        kFrontRight,
-        kBL,
-        kBackLeft,
-        kBR,
-        kBackRight
-    }
 
     /** Anytime an object of the DriveSubsystem class is called, this constructor sets up the swerve modules */
     public DriveSubsystem() {
@@ -131,84 +120,15 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     public static boolean ifGyroZero() {
-        if (getGyro() >= 0.9 || getGyro() <= -0.9) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * @param modulePosition which module you are referencing ({@link DriveSubsystem#Module})
-     * @return the Encoder position as a double
-     */
-    public double getDriveEncoder(Module modulePosition) {
-
-        switch (modulePosition) {
-            case kFL: // Intentional fall through
-            case kFrontLeft:
-                return frontLeft.getSelectedSensorPosition()[0];
-            case kFR:
-            case kFrontRight:
-                return frontRight.getSelectedSensorPosition()[0];
-            case kBL:
-            case kBackLeft:
-                return backLeft.getSelectedSensorPosition()[0];
-            case kBR:
-            case kBackRight:
-                return backRight.getSelectedSensorPosition()[0];
-            default:
-                LOG.warn("Module Position isnt recognized (Defaulting)");
-                return Double.NaN;
-        }
-    }
-
-    /**
-     * @param modulePosition which module you are referencing ({@link DriveSubsystem#Module})
-     * @return the Steer CAN Coder as a double
-     */
-    public double getSteerCANCoder(Module modulePosition) {
-        switch (modulePosition) {
-            case kFL: // Intentional fall through
-            case kFrontLeft:
-                return frontLeft.getAbsoluteAngle();
-            case kFR:
-            case kFrontRight:
-                return frontRight.getAbsoluteAngle();
-            case kBL:
-            case kBackLeft:
-                return backLeft.getAbsoluteAngle();
-            case kBR:
-            case kBackRight:
-                return backRight.getAbsoluteAngle();
-            default:
-                LOG.warn("Module Position isnt recognized (Defaulting)");
-                return Double.NaN;
-        }
+        return (getGyro() > -1 || getGyro() < 1);
     }
 
     /** 
      * @param modulePosition which module you are referencing ({@link DriveSubsystem#Module})
      * @return current module state as a {@link SwerveModuleState} 
      */
-    public SwerveModuleState getState(Module modulePosition) {
-
-        switch (modulePosition) {
-            case kFL: // Intentional fall through
-            case kFrontLeft:
-                return new SwerveModuleState(frontLeft.getDriveVelocity(), new Rotation2d(getSteerCANCoder(Module.kFL)));
-            case kFR:
-            case kFrontRight:
-                return new SwerveModuleState(frontRight.getDriveVelocity(), new Rotation2d(getSteerCANCoder(Module.kFR)));
-            case kBL:
-            case kBackLeft:
-                return new SwerveModuleState(backLeft.getDriveVelocity(), new Rotation2d(getSteerCANCoder(Module.kBL)));
-            case kBR:
-            case kBackRight:
-                return new SwerveModuleState(backRight.getDriveVelocity(), new Rotation2d(getSteerCANCoder(Module.kBR)));
-            default:
-                LOG.warn("Module Position isnt recognized (Defaulting)");
-                return new SwerveModuleState(0, new Rotation2d(0));
-        }
+    public SwerveModuleState getState(SwerveModule module) {
+        return new SwerveModuleState(module.getDriveVelocity(), new Rotation2d(module.getAbsoluteAngle()));
     }
 
     /** @return the Pigeon's Heading as a Rotation2d object
@@ -252,8 +172,8 @@ public class DriveSubsystem extends SubsystemBase {
     /** Periodically does stuff */
     @Override
     public void periodic() {
-        m_odometer.update(getRotation2d(), getState(Module.kFL), getState(Module.kFR),
-                            getState(Module.kBL), getState(Module.kBR));
+        m_odometer.update(getRotation2d(), getState(frontLeft), getState(frontRight),
+                            getState(backLeft), getState(backRight));
 
         SwerveModuleState[] states = DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(m_chassisSpeeds);
         setModuleStates(states);

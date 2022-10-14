@@ -10,7 +10,7 @@ public class Shooter extends CommandBase {
 
     private final ShooterSubsystem shooterSubsystem;
     private final double percent;
-    
+
     public Shooter(ShooterSubsystem shooterSubsystem, double percent) {
         this.shooterSubsystem = shooterSubsystem;
         this.percent = percent;

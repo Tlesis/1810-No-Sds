@@ -10,7 +10,7 @@ public class Intake extends CommandBase {
     private final IntakeSubsystem intakeSubsystem;
     private final XboxController xbox;
     private final boolean right;
-    
+
     public Intake(IntakeSubsystem intakeSubsystem, XboxController xbox, boolean right) {
 
         this.intakeSubsystem = intakeSubsystem;
@@ -40,7 +40,6 @@ public class Intake extends CommandBase {
         } else {
             intakeSubsystem.leftPneumatic(false);
         }
-        
         intakeSubsystem.motorOff(right);
     }
 }

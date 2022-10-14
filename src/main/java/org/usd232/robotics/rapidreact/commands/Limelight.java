@@ -25,5 +25,4 @@ public class Limelight extends CommandBase{
         visionSubsystem.limeLightOff();
         hoodSubsystem.resetHood();
     }
-    
 }

@@ -77,15 +77,14 @@ public class VisionSubsystem extends SubsystemBase {
                 try {
                     if (ty <= -8.1) {
                         hoodDistance = 24.883 * (ty * ty) + 890.06 * ty + 4643;
-    
+
                         if (hoodDistance > -900) {
                             hoodDistance = -900;
                         }
-                        
                         if (hoodDistance < HoodConstants.FORWARD_HOOD_LIMIT) {
                             // if the calculated hood distance is past the max limit then set it to be at the max limit
                             hoodDistance = HoodConstants.FORWARD_HOOD_LIMIT;
-                        } 
+                        }
                     } else {
                         hoodDistance = -900;
                     }

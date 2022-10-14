@@ -19,7 +19,7 @@ public class SwerveDrive extends CommandBase {
      */
     //@SuppressWarnings("unused")
     private static final Logger LOG = new Logger();
-    
+
     private final DriveSubsystem m_driveSubsystem;
 
     private final DoubleSupplier m_translationXSupplier;
@@ -67,7 +67,7 @@ public class SwerveDrive extends CommandBase {
     public boolean isFinished() {
         return false;
     }
-    
+
     /** If interrupted is true, then stop the robot from moving */
     @Override
     public void end(boolean interrupted) {

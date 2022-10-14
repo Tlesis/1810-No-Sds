@@ -46,15 +46,15 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-        
+
         // Turns Limelight off on startup
-        m_visionSubsystem.limeLightOn();
-        
+        m_visionSubsystem.limeLightOff();
+
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         m_robotContainer = new RobotContainer();
     }
-    
+
     /**
      * This function is called every robot packet, no matter the mode. Use this for items like
      * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
@@ -83,7 +83,6 @@ public class Robot extends TimedRobot {
             m_hoodSubsystem.stopHood();
         }
 
-        
         // post to smart dashboard periodically
         SmartDashboard.putNumber("Gyroscope angle", DriveSubsystem.getGyro());
         SmartDashboard.putBoolean("Gyro 0", DriveSubsystem.ifGyroZero());
@@ -94,26 +93,26 @@ public class Robot extends TimedRobot {
         SmartDashboard.putString("Shooter Speed", String.format("%.2f", ShooterSubsystem.getEncoderVelocity()));
         SmartDashboard.putNumber("Hood Distance", m_visionSubsystem.getTargetingValues()[0]);
         SmartDashboard.putNumber("Calc Shooter Speed", m_visionSubsystem.getTargetingValues()[1]);
-    
+
         /** Enable compressor closed loop control using analog input. */
         m_ph.enableCompressorAnalog(PneumaticConstants.MIN_TANK_PSI, PneumaticConstants.MAX_TANK_PSI);
-        
+
         CommandScheduler.getInstance().run();
     }
-    
+
     /** This function is called once each time the robot enters Disabled mode. */
     @Override
     public void disabledInit() {
         // Turns Limelight off on disable
         m_visionSubsystem.limeLightOff();
-        
+
         // Turn off shooter motor on disable
         m_shooterSubsystem.shooterOff();
     }
-    
+
     @Override
     public void disabledPeriodic() {}
-    
+
     /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
     @Override
     public void autonomousInit() {
@@ -121,15 +120,15 @@ public class Robot extends TimedRobot {
         // Resets the hood on startup (could be annoying during testing)
         m_hoodSubsystem.resetHood();
         // m_driveSubsystem.setBrake();
-        
+
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-        
+
         // schedule the autonomous command (example)
         if (m_autonomousCommand != null) {
             m_autonomousCommand.schedule();
         }
     }
-    
+
     /** This function is called periodically during autonomous. */
     @Override
     public void autonomousPeriodic() {}

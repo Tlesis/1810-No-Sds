@@ -9,7 +9,7 @@ public class Hood extends CommandBase {
 
     private final HoodSubsystem hoodSubsystem;
     private boolean forward;
-    
+
     public Hood(HoodSubsystem hoodSubsystem, boolean forward) {
         this.forward = forward;
         this.hoodSubsystem = hoodSubsystem;
@@ -29,15 +29,15 @@ public class Hood extends CommandBase {
         if (HoodSubsystem.hoodEncoder.getDistance() <= FORWARD_HOOD_LIMIT && forward) {
             return true;
         }
-        
+
         if (HoodSubsystem.hoodLS.get() && !forward) {
             hoodSubsystem.zeroEncoder();
             return true;
         }
-        
+
         return false;
     }
-    
+
     @Override
     public void end(boolean interrupted) {
         hoodSubsystem.stopHood();

@@ -9,7 +9,7 @@ public class Auger extends CommandBase {
 
     private final AugerSubsystem augerSubsystem;
     private final XboxController xbox;
-    
+
     /** Command that controls the, the auger  */
     public Auger(AugerSubsystem augerSubsystem, XboxController xbox) {
         this.augerSubsystem = augerSubsystem;

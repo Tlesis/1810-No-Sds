@@ -8,7 +8,7 @@ import static edu.wpi.first.wpilibj.XboxController.Axis;
 
 /** Used to turn the Xbox LT & RT from analog to Digital */
 public class XboxTrigger extends Button {
-    
+
     private XboxController xbox;
     private static final double minValue = 0.1;
     private Axis hand;
@@ -22,5 +22,4 @@ public class XboxTrigger extends Button {
     public boolean get() {
         return xbox.getRawAxis(hand.value) > minValue;
     }
-    
 }

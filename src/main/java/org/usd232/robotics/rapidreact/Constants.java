@@ -13,7 +13,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
  * constants are needed, to reduce verbosity.
  * <p>
  * For example:
- * <pre> {@code import static org.usd232.robotics.rapidreact.Constants.*;} </pre>
+ * <pre>{@code import static org.usd232.robotics.rapidreact.Constants.*;}</pre>
  */
 public final class Constants {
     // https://drive.google.com/file/d/1g1jBZHPf6Fq6V2tG7PFIGtjpEEV2BIGf/view?usp=sharing
@@ -23,38 +23,38 @@ public final class Constants {
          *
          * Should be measured from center to center.
          */
-        public static final double DRIVETRAIN_TRACKWIDTH_METERS =  0.64928; // 0.5
+        public static final double DRIVETRAIN_TRACKWIDTH_METERS =  0.5; // 0.5
 
         /**
          * The front-to-back distance between the drive wheels.
          *
          * Should be measured from center to center.
         */
-        public static final double DRIVETRAIN_WHEELBASE_METERS = 0.5; // 0.64928
+        public static final double DRIVETRAIN_WHEELBASE_METERS = 0.64928; // 0.64928
 
         // Front left swerve module
-        public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 3;
-        public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 4;
-        public static final int FRONT_LEFT_MODULE_STEER_CANCODER = 9;
-        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(277.38);
+        public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 1;
+        public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 2;
+        public static final int FRONT_LEFT_MODULE_STEER_CANCODER = 10;
+        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(149.15);
 
         // Front right swerve module
-        public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 5;
-        public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 6;
-        public static final int FRONT_RIGHT_MODULE_STEER_CANCODER = 11;
-        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(4.39);
+        public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 3;
+        public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 4;
+        public static final int FRONT_RIGHT_MODULE_STEER_CANCODER = 9;
+        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(187.82);
 
         // Back left swerve module
-        public static final int BACK_LEFT_MODULE_STEER_MOTOR = 1;
-        public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 2;
-        public static final int BACK_LEFT_MODULE_STEER_CANCODER = 10;
-        public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(240.03);
+        public static final int BACK_LEFT_MODULE_STEER_MOTOR = 7;
+        public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 8;
+        public static final int BACK_LEFT_MODULE_STEER_CANCODER = 12;
+        public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(0.13);
 
         // Back right swerve module
-        public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 7;
-        public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 8;
-        public static final int BACK_RIGHT_MODULE_STEER_CANCODER = 12;
-        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(132.54);
+        public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 5;
+        public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 6;
+        public static final int BACK_RIGHT_MODULE_STEER_CANCODER = 11;
+        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(181.49);
 
         public static final SwerveDriveKinematics DRIVE_KINEMATICS = new SwerveDriveKinematics(
           // Front left
@@ -64,8 +64,7 @@ public final class Constants {
           // Back left
           new Translation2d(-DriveConstants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DriveConstants.DRIVETRAIN_WHEELBASE_METERS / 2.0),
           // Back right
-          new Translation2d(-DriveConstants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DriveConstants.DRIVETRAIN_WHEELBASE_METERS / 2.0)
-  );
+          new Translation2d(-DriveConstants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DriveConstants.DRIVETRAIN_WHEELBASE_METERS / 2.0));
     }
 
     public static final class ModuleConstants {
