@@ -2,6 +2,7 @@ package org.usd232.robotics.rapidreact.subsystems;
 
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.sensors.PigeonIMU;
 
 // import org.usd232.robotics.rapidreact.log.Logger;
@@ -159,7 +160,18 @@ public class DriveSubsystem extends SubsystemBase {
         m_chassisSpeeds = chassisSpeeds;
     }
 
-    public void setModuleStates(SwerveModuleState[] states) {
+    public void setModuleStates(SwerveModuleState states[]) {
+        // reduce ice driving?
+        double statesAvg = 0;
+        for (int i = 0; i < 4; i++) {
+            statesAvg += Math.abs(states[i].speedMetersPerSecond);
+        }
+        if (statesAvg < 1) { // TODO: test < value
+            setNeutralMode(NeutralMode.Brake);
+        } else {
+            setNeutralMode(NeutralMode.Coast);
+        }
+
         // Normalizes the wheel speeds, scaling the speed of all wheels down relative to each other. This just means that no one wheel will be going too fast when it shouldn't
         SwerveDriveKinematics.desaturateWheelSpeeds(states, ModuleConstants.MAX_VELOCITY_METERS_PER_SECOND);
         // Set the motor speeds and rotation
@@ -183,10 +195,17 @@ public class DriveSubsystem extends SubsystemBase {
 
     /** Stops Robot */
     public void stopModules() {
-        frontLeft.set(0, 0);
-        frontRight.set(0, 0);
-        backLeft.set(0, 0);
-        backRight.set(0, 0);
+        frontLeft.stop();
+        frontRight.stop();
+        backLeft.stop();
+        backRight.stop();
+    }
+
+    public void setNeutralMode(NeutralMode mode) {
+        frontLeft.setDriveNeutralMode(mode);
+        frontRight.setDriveNeutralMode(mode);
+        backLeft.setDriveNeutralMode(mode);
+        backRight.setDriveNeutralMode(mode);
     }
 
     /************************ PAth STuff ************************/
@@ -195,20 +214,20 @@ public class DriveSubsystem extends SubsystemBase {
         return new Pose2d(trajectory.getInitialState().poseMeters.getTranslation(),
             trajectory.getInitialState().holonomicRotation);
     }
-          
+
     /**
      * Creates a command to follow a Trajectory on the drivetrain.
      * @param trajectory trajectory to follow
      * @return command that will run the trajectory
      */
     public Command createCommandForTrajectory(PathPlannerTrajectory trajectory, Boolean initPose) {
-    
+
         PIDController xController = new PIDController(AutoConstants.kp_X_CONTROLLER, 0, 0);
         PIDController yController = new PIDController(AutoConstants.kp_Y_CONTROLLER, 0, 0);
         ProfiledPIDController thetaController = new ProfiledPIDController(
             AutoConstants.kp_THETA_CONTROLLER, 0.0, 0.1, AutoConstants.THETA_CONTROLLER_CONSTRAINTS);
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
-    
+
         PPSwerveControllerCommand swerveControllerCommand = new PPSwerveControllerCommand(
             trajectory,
             this::getPose,
@@ -218,7 +237,7 @@ public class DriveSubsystem extends SubsystemBase {
             thetaController,
             this::setModuleStates,
             this);
-    
+
         if (initPose) {
             var reset =  new InstantCommand(() -> this.resetOdometry(getInitPose(trajectory)));
             return reset.andThen(swerveControllerCommand.andThen(() -> stopModules()));

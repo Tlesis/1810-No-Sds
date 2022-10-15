@@ -1,5 +1,6 @@
 package org.usd232.robotics.rapidreact;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
@@ -35,7 +36,7 @@ public class SwerveModule {
         TalonFXConfiguration driveMotorConfiguration = new TalonFXConfiguration();
         driveMotor = new TalonFX(drivePort);
         checkCtreError(driveMotor.configAllSettings(driveMotorConfiguration), "Failed to configure Falcon 500");
-        driveMotor.setNeutralMode(NeutralMode.Coast); // TODO
+        driveMotor.setNeutralMode(NeutralMode.Brake);
         driveMotor.setInverted(TalonFXInvertType.Clockwise);
         driveMotor.setSensorPhase(true);
 
@@ -71,11 +72,6 @@ public class SwerveModule {
     }
 
     public void set(double driveVoltage, double steerAngle) {
-        /* if (Math.abs(getDriveVelocity()) < 0.1) {
-            driveMotor.setNeutralMode(NeutralMode.Coast);
-        } else {
-            driveMotor.setNeutralMode(NeutralMode.Brake);
-        } */
 
         // Put the angle into the range [0, 2pi)
         steerAngle %= (2.0 * Math.PI);
@@ -151,7 +147,8 @@ public class SwerveModule {
         }
 
         // The reference angle has the range [0, 2pi) but the Falcon's encoder can go above that
-        double adjustedReferenceAngleRadians = referenceAngleRadians + currentAngleRadians - currentAngleRadiansMod;            if (referenceAngleRadians - currentAngleRadiansMod > Math.PI) {
+        double adjustedReferenceAngleRadians = referenceAngleRadians + currentAngleRadians - currentAngleRadiansMod;
+        if (referenceAngleRadians - currentAngleRadiansMod > Math.PI) {
             adjustedReferenceAngleRadians -= 2.0 * Math.PI;
         } else if (referenceAngleRadians - currentAngleRadiansMod < -Math.PI) {
             adjustedReferenceAngleRadians += 2.0 * Math.PI;
@@ -186,5 +183,13 @@ public class SwerveModule {
 
     public double getDriveVelocity() {
         return driveMotor.getSelectedSensorVelocity() * ModuleConstants.MOTOR_ENCODER_VELOCITY_COEFFICENT;
+    }
+
+    public void stop() {
+        driveMotor.set(ControlMode.PercentOutput, 0);
+    }
+
+    public void setDriveNeutralMode(NeutralMode mode) {
+        driveMotor.setNeutralMode(mode);
     }
 }

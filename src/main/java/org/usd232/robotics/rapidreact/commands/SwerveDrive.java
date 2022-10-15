@@ -48,7 +48,7 @@ public class SwerveDrive extends CommandBase {
     /** Sets ChassisSpeeds to the x speed, y speed, and rotation */
     @Override
     public void execute() {
-         m_driveSubsystem.drive( 
+         m_driveSubsystem.drive(
             (fieldOriented) ?
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                         m_translationXSupplier.getAsDouble(),

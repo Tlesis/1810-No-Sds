@@ -141,7 +141,7 @@ public final class Constants {
         public static final double MAX_TANK_PSI = 117;
         public static final double MIN_TANK_PSI = 110;
     }
-    
+
     public static final class IntakeConstants {
         public static final int RIGHT_MOTOR_PORT = 1;
         public static final int LEFT_MOTOR_PORT = 0;
@@ -166,7 +166,7 @@ public final class Constants {
 
         public static final double HOOD_DEADBAND = 50;
 
-        public static double FORWARD_HOOD_LIMIT = -3200; //-2650
+        public static double FORWARD_HOOD_LIMIT = -3200; // -2650
     }
 
     public static final class AugerConstants {
