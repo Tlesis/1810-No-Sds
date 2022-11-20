@@ -1,12 +1,9 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
+
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-// import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -15,96 +12,118 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
  *
  * <p>It is advised to statically import this class (or one of its inner classes) wherever the
  * constants are needed, to reduce verbosity.
+ * <p>
  * For example:
- * <pre> {@code import static frc.robot..Constants.*;} </pre>
+ * <pre> {@code import static frc.robot.Constants.*;} </pre>
  */
-public final class Constants {
+public class Constants {
+    // https://drive.google.com/file/d/1g1jBZHPf6Fq6V2tG7PFIGtjpEEV2BIGf/view?usp=sharing
     public static final class DriveConstants {
+        /**
+         * The left-to-right distance between the drive wheels
+         *
+         * Should be measured from center to center.
+         */
+        public static final double DRIVETRAIN_TRACKWIDTH_METERS =  0.64928; // 0.5
+
+        /**
+         * The front-to-back distance between the drive wheels.
+         *
+         * Should be measured from center to center.
+        */
+        public static final double DRIVETRAIN_WHEELBASE_METERS = 0.5; // 0.64928
 
         // Front left swerve module
-        public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 1;
-        public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 2;
-        public static final int FRONT_LEFT_MODULE_CANCODER = 10;
-        public static final boolean FRONT_LEFT_MODULE_CANCODER_REVERSED = false; // FIXME
-        public static final boolean FRONT_LEFT_MODULE_STEER_REVERSED = false; // FIXME
-        public static final boolean FRONT_LEFT_MODULE_DRIVE_REVERSED = false; // FIXME
-        
+        public static final int FRONT_LEFT_STEER_MOTOR_ID = 3;
+        public static final int FRONT_LEFT_DRIVE_MOTOR_ID = 4;
+        public static final int FRONT_LEFT_CANCODER_ID = 9;
+        public static final double FRONT_LEFT_STEER_OFFSET = 277.38;
+
         // Front right swerve module
-        public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 3;
-        public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 4;
-        public static final int FRONT_RIGHT_MODULE_CANCODER = 9;
-        public static final boolean FRONT_RIGHT_MODULE_CANCODER_REVERSED = false; // FIXME
-        public static final boolean FRONT_RIGHT_MODULE_STEER_REVERSED = false; // FIXME
-        public static final boolean FRONT_RIGHT_MODULE_DRIVE_REVERSED = false; // FIXME
-        
+        public static final int FRONT_RIGHT_STEER_MOTOR_ID = 5;
+        public static final int FRONT_RIGHT_DRIVE_MOTOR_ID = 6;
+        public static final int FRONT_RIGHT_CANCODER_ID = 11;
+        public static final double FRONT_RIGHT_STEER_OFFSET = 4.39;
+
         // Back left swerve module
-        public static final int BACK_LEFT_MODULE_STEER_MOTOR = 7;
-        public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 8;
-        public static final int BACK_LEFT_MODULE_CANCODER = 12;
-        public static final boolean BACK_LEFT_MODULE_CANCODER_REVERSED = true; // FIXME
-        public static final boolean BACK_LEFT_MODULE_STEER_REVERSED = true; // FIXME
-        public static final boolean BACK_LEFT_MODULE_DRIVE_REVERSED = true; // FIXME
-        
+        public static final int BACK_LEFT_STEER_MOTOR_ID = 1;
+        public static final int BACK_LEFT_DRIVE_MOTOR_ID = 2;
+        public static final int BACK_LEFT_CANCODER_ID = 10;
+        public static final double BACK_LEFT_STEER_OFFSET = 240.03;
+
         // Back right swerve module
-        public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 5;
-        public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 6;
-        public static final int BACK_RIGHT_MODULE_CANCODER = 11;
-        public static final boolean BACK_RIGHT_MODULE_CANCODER_REVERSED = true; // FIXME
-        public static final boolean BACK_RIGHT_MODULE_STEER_REVERSED = true; // FIXME
-        public static final boolean BACK_RIGHT_MODULE_DRIVE_REVERSED = true; // FIXME
+        public static final int BACK_RIGHT_STEER_MOTOR_ID = 7;
+        public static final int BACK_RIGHT_DRIVE_MOTOR_ID = 8;
+        public static final int BACK_RIGHT_CANCODER_ID = 12;
+        public static final double BACK_RIGHT_STEER_OFFSET = 132.54;
 
-        // Distance between centers of right and left wheels on robot
-        public static final double TRACKWIDTH_METERS = 0.5;
-
-        // Distance between front and back wheels on robot
-        public static final double WHEELBASE_METERS = 0.64928;
-
-        public static final SwerveDriveKinematics DRIVE_KINEMATICS =
-            new SwerveDriveKinematics(
-                new Translation2d(WHEELBASE_METERS / 2, TRACKWIDTH_METERS / 2),
-                new Translation2d(WHEELBASE_METERS / 2, -TRACKWIDTH_METERS / 2),
-                new Translation2d(-WHEELBASE_METERS / 2, TRACKWIDTH_METERS / 2),
-                new Translation2d(-WHEELBASE_METERS / 2, -TRACKWIDTH_METERS / 2));
-
-        public static final boolean GYRO_REVERSED = false;
-
-        // TODO: These are example values only - DO NOT USE THESE FOR YOUR OWN ROBOT!
-        // These characterization values MUST be determined either experimentally or theoretically
-        // for *your* robot's drive.
-        // The SysId tool provides a convenient method for obtaining these values for your robot.
-        public static final double ksVolts = 1;
-        public static final double kvVoltSecondsPerMeter = 0.8;
-        public static final double kaVoltSecondsSquaredPerMeter = 0.15;
-
-        public static final double MAX_VELOCITY_METERS_PER_SECOND = 2048.0 / 60.0 *
-            ModuleConstants.DRIVE_REDUCTION * ModuleConstants.WHEEL_DIAMETER * Math.PI;
+        public static final SwerveDriveKinematics DRIVE_KINEMATICS = new SwerveDriveKinematics(
+          // Front left
+          new Translation2d(DriveConstants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DriveConstants.DRIVETRAIN_WHEELBASE_METERS / 2.0),
+          // Front right
+          new Translation2d(DriveConstants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DriveConstants.DRIVETRAIN_WHEELBASE_METERS / 2.0),
+          // Back left
+          new Translation2d(-DriveConstants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DriveConstants.DRIVETRAIN_WHEELBASE_METERS / 2.0),
+          // Back right
+          new Translation2d(-DriveConstants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DriveConstants.DRIVETRAIN_WHEELBASE_METERS / 2.0)
+        );
     }
 
+    /** pulled straight from SDS for the MK4 L2s */
     public static final class ModuleConstants {
-        public static final double kMaxModuleAngularSpeedRadiansPerSecond = 2 * Math.PI;
-        public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 2 * Math.PI;
-
-        /** Drive reduction of SDS's MK4 Modules */
-        public static final double DRIVE_REDUCTION = (14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0);
-
-        /** Steer reduction of SDS's MK4 Modules */
-        public static final double STEER_REDUCTION = (15.0 / 32.0) * (10.0 / 60.0);
-
-        public static final int ENCODER_CPR = 2048;
-
-        /** Wheel diameter in meters of SDS's MK4 Modules */
         public static final double WHEEL_DIAMETER = 0.10033;
+        public static final double DRIVE_REDUCTION = (14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0);
+        public static final boolean DRIVE_INVERTED = true;
+        public static final double STEER_REDUCTION = (15.0 / 32.0) * (10.0 / 60.0);
+        public static final boolean STEER_INVERTED = true;
+        public static final boolean CANCODER_INVERTED = false;
 
-        public static final double DRIVE_DISTANCE_PER_PULSE =
-            DRIVE_REDUCTION * ((WHEEL_DIAMETER * Math.PI) / (double) ENCODER_CPR);
+        public static final double DRIVE_CURRENT_LIMIT = 80.0;
+        public static final double STEER_CURRENT_LIMIT = 20.0;
 
-        public static final double STEER_DISTANCE_PER_PULSE =
-            STEER_REDUCTION * ((2 * Math.PI) / (double) ENCODER_CPR);
+        public static final double STEER_kP = 0.2; // 3087 = 0.6; SDS = 0.2;
+        public static final double STEER_kI = 0.0;
+        public static final double STEER_kD = 0.1; // 3087 = 12.0; SDS = 0.1;
+        // increse to redude jitter
+        public static final double ALLOWED_ERROR = 0; // (2048 * STEER_REDUCTION) / 360.0) = 1 degree
 
-        public static final double kP_STEER = 0.2;
-        public static final double kD_STEER = 0.1;
+        public static final double DRIVE_kP = 0.1; // 3087 = 0.1; SDS = 0.0;
+        public static final double DRIVE_kI = 0.0;
+        public static final double DRIVE_kD = 0.0;
 
-        public static final double kP_DRIVE = 1; // TODO: FIXME
+        // divide by 12 to convert from volts to % output for CTRE
+        // pulled from 3087
+        public static final double DRIVE_kS = (0.605 / 12);
+        public static final double DRIVE_kV = (1.72 / 12);
+        public static final double DRIVE_kA = (0.193 / 12);
+
+        public static final double OPEN_LOOP_RAMP = 0.25; // From 3087
+        public static final double CLOSED_LOOP_RAMP = 0;
+
+        public static final NeutralMode DRIVE_NEUTRAL_MODE = NeutralMode.Coast;
+        public static final NeutralMode STEER_NEUTRAL_MODE = NeutralMode.Coast;
+
+        /**
+         * The maximum velocity of the robot in meters per second.
+         * <p>
+         * This is a measure of how fast the robot should be able to drive in a straight line.
+         */
+        // Freespeed: 4.96824 m/s
+        // Calculated: 4.968230455 m/s
+        // Real: (Not done) m/ (after whole robot is assembled)
+        public static final double MAX_VELOCITY = 4.5;
+
+        /**
+         * The maximum angular velocity of the robot in radians per second.
+         * <p>
+         * This is a measure of how fast the robot can rotate in place.
+         */
+        // Here we calculate the theoretical maximum angular velocity. You can also replace this with a measured amount.
+        // Freespeed: 61.21537703 rad/s
+        // Calculated: 61.2152594258 rad/s
+        // Real: (Not done) rad/s (after whole robot is assembled)
+        public static final double MAX_ANGULAR_VELOCITY = MAX_VELOCITY /
+        Math.hypot(DriveConstants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DriveConstants.DRIVETRAIN_WHEELBASE_METERS / 2.0); // hypot is about 0.409745200826 meters
     }
 
     public static final class OIConstants {
@@ -115,23 +134,8 @@ public final class Constants {
         public static final double DEADBAND = 0.4;
     }
 
-    /* public static final class AutoConstants {
-        public static final double kMaxSpeedMetersPerSecond = 3;
-        public static final double kMaxAccelerationMetersPerSecondSquared = 3;
-        public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-        public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
-
-        public static final double kPXController = 1;
-        public static final double kPYController = 1;
-        public static final double kPThetaController = 1;
-
-        // Constraint for the motion profiled robot angle controller
-        public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
-            new TrapezoidProfile.Constraints(
-                kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
-    } */
-
-    public static final class PigeonConstants {
+    public static final class GyroConstants {
         public static final int ID = 13;
+        public static final boolean INVERT_GYRO = false; // Always ensure Gyro is CCW+ CW-
     }
 }

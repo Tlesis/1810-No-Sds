@@ -1,152 +1,158 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
 
-import com.ctre.phoenix.sensors.PigeonIMU;
-
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import static frc.robot.Constants.*;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.swerve.Gyro;
+import frc.robot.swerve.Odometry;
+import frc.robot.swerve.SwerveModule;
+
+import static frc.robot.Constants.*;
+
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 
 public class DriveSubsystem extends SubsystemBase {
-    // Robot swerve modules
-    private final SwerveModule frontLeft =
-        new SwerveModule(
-            DriveConstants.FRONT_LEFT_MODULE_DRIVE_MOTOR,
-            DriveConstants.FRONT_LEFT_MODULE_STEER_MOTOR,
-            DriveConstants.FRONT_LEFT_MODULE_CANCODER,
-            DriveConstants.FRONT_LEFT_MODULE_DRIVE_REVERSED,
-            DriveConstants.FRONT_LEFT_MODULE_STEER_REVERSED,
-            DriveConstants.FRONT_LEFT_MODULE_CANCODER_REVERSED);
+    public Gyro gyro;
+    public Odometry odometry;
+    public SwerveModule swerveModules[];
+    private SwerveModuleState swerveModuleStates[];
+    public double pidTurn = 0;
+    public double driveX = 0;
+    public double driveY = 0;
+    public double driveTheta = 0;
+    ChassisSpeeds lastRequestedVelocity = new ChassisSpeeds(0, 0, 0);
 
-    private final SwerveModule backLeft =
-        new SwerveModule(
-            DriveConstants.BACK_LEFT_MODULE_DRIVE_MOTOR,
-            DriveConstants.BACK_LEFT_MODULE_STEER_MOTOR,
-            DriveConstants.BACK_LEFT_MODULE_CANCODER,
-            DriveConstants.BACK_LEFT_MODULE_DRIVE_REVERSED,
-            DriveConstants.BACK_LEFT_MODULE_STEER_REVERSED,
-            DriveConstants.BACK_LEFT_MODULE_CANCODER_REVERSED);
+    public DriveSubsystem() {
+        setName("Drive");
+        gyro = new Gyro();
 
-    private final SwerveModule frontRight =
-        new SwerveModule(
-            DriveConstants.FRONT_LEFT_MODULE_DRIVE_MOTOR,
-            DriveConstants.FRONT_RIGHT_MODULE_STEER_MOTOR,
-            DriveConstants.FRONT_RIGHT_MODULE_CANCODER,
-            DriveConstants.FRONT_RIGHT_MODULE_DRIVE_REVERSED,
-            DriveConstants.FRONT_RIGHT_MODULE_STEER_REVERSED,
-            DriveConstants.FRONT_RIGHT_MODULE_CANCODER_REVERSED);
+        SwerveModule frontLeft =
+            new SwerveModule(0,
+                DriveConstants.FRONT_LEFT_DRIVE_MOTOR_ID,
+                DriveConstants.FRONT_LEFT_STEER_MOTOR_ID,
+                DriveConstants.FRONT_LEFT_CANCODER_ID,
+                DriveConstants.FRONT_LEFT_STEER_OFFSET
+            );
 
-    private final SwerveModule backRight =
-        new SwerveModule(
-            DriveConstants.BACK_RIGHT_MODULE_DRIVE_MOTOR,
-            DriveConstants.BACK_RIGHT_MODULE_STEER_MOTOR,
-            DriveConstants.BACK_RIGHT_MODULE_CANCODER,
-            DriveConstants.BACK_RIGHT_MODULE_DRIVE_REVERSED,
-            DriveConstants.BACK_RIGHT_MODULE_STEER_REVERSED,
-            DriveConstants.BACK_RIGHT_MODULE_CANCODER_REVERSED);
+        SwerveModule frontRight =
+            new SwerveModule(1,
+                DriveConstants.FRONT_RIGHT_DRIVE_MOTOR_ID,
+                DriveConstants.FRONT_RIGHT_STEER_MOTOR_ID,
+                DriveConstants.FRONT_RIGHT_CANCODER_ID,
+                DriveConstants.FRONT_RIGHT_STEER_OFFSET
+            );
 
-    // The gyro sensor
-    private final PigeonIMU gyro = new PigeonIMU(PigeonConstants.ID);
+        SwerveModule backLeft =
+            new SwerveModule(2,
+                DriveConstants.BACK_LEFT_DRIVE_MOTOR_ID,
+                DriveConstants.BACK_LEFT_STEER_MOTOR_ID,
+                DriveConstants.BACK_LEFT_CANCODER_ID,
+                DriveConstants.BACK_LEFT_STEER_OFFSET
+            );
 
-    // Odometry class for tracking robot pose
-    SwerveDriveOdometry odometry =
-        new SwerveDriveOdometry(DriveConstants.DRIVE_KINEMATICS, new Rotation2d(gyro.getFusedHeading()));
+        SwerveModule backRight =
+            new SwerveModule(3,
+                DriveConstants.BACK_RIGHT_DRIVE_MOTOR_ID,
+                DriveConstants.BACK_RIGHT_STEER_MOTOR_ID,
+                DriveConstants.BACK_RIGHT_CANCODER_ID,
+                DriveConstants.BACK_RIGHT_STEER_OFFSET
+            );
 
-    /** Creates a new DriveSubsystem. */
-    public DriveSubsystem() {}
+        swerveModules =
+            new SwerveModule[] {
+                frontLeft,
+                frontRight,
+                backLeft,
+                backRight
+            };
+
+        resetSteeringToAbsolute();
+        odometry = new Odometry(this);
+    }
+
+    public void drive(Translation2d translation, double theta, boolean fieldOriented, boolean isOpenLoop) {
+        ChassisSpeeds speeds =
+            (fieldOriented) ?
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                        translation.getX(),
+                        translation.getY(),
+                        theta,
+                        gyro.getYaw()) :
+
+                new ChassisSpeeds(
+                        translation.getX(),
+                        translation.getY(),
+                        theta);
+
+        SwerveModuleState states[] = DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(speeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, ModuleConstants.MAX_VELOCITY);
+
+        for (var module : swerveModules) {
+            module.setDesiredState(states[module.moduleNumber], isOpenLoop);
+        }
+    }
+
+    // Reset AngleMotors to Absolute
+    public void resetSteeringToAbsolute() {
+        for (var module : swerveModules) {
+            module.resetToAbsolute();
+        }
+    }
+
+    public void setModuleStates(SwerveModuleState[] desiredStates) {
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, ModuleConstants.MAX_VELOCITY);
+
+        for (var module : swerveModules) {
+            module.setDesiredState(desiredStates[module.moduleNumber], false);
+        }
+    }
+
+    public void brakeMode(boolean enabled) {
+        for (var module : swerveModules) {
+            if (enabled) {
+                module.driveMotor.setNeutralMode(NeutralMode.Brake);
+            } else {
+                module.driveMotor.setNeutralMode(NeutralMode.Coast);
+            }
+        }
+    }
+
+    public void stop() {
+        for (var module : swerveModules) {
+            module.driveMotor.stopMotor();
+            module.steerMotor.stopMotor();
+        }
+    }
+
+    public SwerveModuleState[] getStates() {
+        return swerveModuleStates;
+    }
+
+    public SwerveModulePosition[] getPositions() {
+        SwerveModulePosition[] positions = new SwerveModulePosition[4];
+        for (var module : swerveModules) {
+            positions[module.moduleNumber] = module.getPosition();
+        }
+        return positions;
+    }
 
     @Override
     public void periodic() {
-    // Update the odometry in the periodic block
-    odometry.update(
-        new Rotation2d(gyro.getFusedHeading()),
-        frontLeft.getState(),
-        frontRight.getState(),
-        backLeft.getState(),
-        backRight.getState());
+        odometry.update();
+        swerveModuleStates = getStatesCAN(); // Gets the states once a loop
+
+        SmartDashboard.putString("SwerveModuleStates/Measured", swerveModuleStates.toString());
     }
 
-    /**
-     * Returns the currently-estimated pose of the robot.
-     *
-     * @return The pose.
-     */
-    public Pose2d getPose() {
-    return odometry.getPoseMeters();
-    }
-
-    /**
-     * Resets the odometry to the specified pose.
-     *
-     * @param pose The pose to which to set the odometry.
-     */
-    public void resetOdometry(Pose2d pose) {
-    odometry.resetPosition(pose, new Rotation2d(gyro.getFusedHeading()));
-    }
-
-    /**
-     * Method to drive the robot using joystick info.
-     *
-     * @param xSpeed Speed of the robot in the x direction (forward).
-     * @param ySpeed Speed of the robot in the y direction (sideways).
-     * @param rot Angular rate of the robot.
-     * @param fieldRelative Whether the provided x and y speeds are relative to the field.
-     */
-    @SuppressWarnings("ParameterName")
-    public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-        var swerveModuleStates =
-            DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
-                fieldRelative
-                    ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, new Rotation2d(gyro.getFusedHeading()))
-                    : new ChassisSpeeds(xSpeed, ySpeed, rot));
-        SwerveDriveKinematics.desaturateWheelSpeeds(
-            swerveModuleStates, DriveConstants.MAX_VELOCITY_METERS_PER_SECOND);
-        frontLeft.setDesiredState(swerveModuleStates[0]);
-        frontRight.setDesiredState(swerveModuleStates[1]);
-        backLeft.setDesiredState(swerveModuleStates[2]);
-        backRight.setDesiredState(swerveModuleStates[3]);
-    }
-
-    /**
-     * Sets the swerve ModuleStates.
-     *
-     * @param desiredStates The desired SwerveModule states.
-     */
-    public void setModuleStates(SwerveModuleState[] desiredStates) {
-        SwerveDriveKinematics.desaturateWheelSpeeds(
-            desiredStates, DriveConstants.MAX_VELOCITY_METERS_PER_SECOND);
-        frontLeft.setDesiredState(desiredStates[0]);
-        frontRight.setDesiredState(desiredStates[1]);
-        backLeft.setDesiredState(desiredStates[2]);
-        backRight.setDesiredState(desiredStates[3]);
-    }
-
-    /** Zeroes the heading of the robot. */
-    public void zeroGyroscope() {
-        gyro.setFusedHeading(0.0);
-    }
-
-    /**
-     * Returns the heading of the robot.
-     *
-     * @return the robot's heading in degrees, from -180 to 180
-     */
-    public double getHeading() {
-        return new Rotation2d(gyro.getFusedHeading()).getDegrees();
-    }
-
-    public void stopModules() {
-        frontLeft.stop();
-        backLeft.stop();
-        frontRight.stop();
-        backRight.stop();
+    private SwerveModuleState[] getStatesCAN() {
+        SwerveModuleState[] states = new SwerveModuleState[4];
+        for (var module : swerveModules) {
+            states[module.moduleNumber] = module.getState();
+        }
+        return states;
     }
 }
